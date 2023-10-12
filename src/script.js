@@ -1,11 +1,25 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 
 /**
  * Debug
  */
 const gui = new GUI();
+
+/**
+ * Base
+ */
+// Canvas
+const canvas = document.querySelector("canvas.webgl");
+
+// Scene
+const scene = new THREE.Scene();
+// scene.fog = new THREE.Fog(0xcccccc, 10, 15);
+
+// gui.add(scene.fog, "isfog");
 
 /**
  * Textures
@@ -29,115 +43,97 @@ loadingManager.onError = () => {
 };
 
 const textureLoader = new THREE.TextureLoader(loadingManager);
-const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
+// const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
 
-const gradientTexture = textureLoader.load("/textures/gradients/3.jpg");
-gradientTexture.minFilter = THREE.NearestFilter;
-gradientTexture.magFilter = THREE.NearestFilter;
+// const environmentMapTexture = cubeTextureLoader.load([
+//   "/textures/environmentMaps/0/px.jpg",
+//   "/textures/environmentMaps/0/nx.jpg",
+//   "/textures/environmentMaps/0/py.jpg",
+//   "/textures/environmentMaps/0/ny.jpg",
+//   "/textures/environmentMaps/0/pz.jpg",
+//   "/textures/environmentMaps/0/nz.jpg",
+// ]);
 
-const environmentMapTexture = cubeTextureLoader.load([
-  "/textures/environmentMaps/0/px.jpg",
-  "/textures/environmentMaps/0/nx.jpg",
-  "/textures/environmentMaps/0/py.jpg",
-  "/textures/environmentMaps/0/ny.jpg",
-  "/textures/environmentMaps/0/pz.jpg",
-  "/textures/environmentMaps/0/nz.jpg",
-]);
+// const material = new THREE.MeshStandardMaterial();
+// material.metalness = 0.7;
+// material.roughness = 0.2;
+// material.envMap = environmentMapTexture;
+
+// gui.add(material, "metalness").min(0).max(1).step(0.0001);
+// gui.add(material, "roughness").min(0).max(1).step(0.0001);
+// gui.add(material, "aoMapIntensity").min(0).max(10).step(0.0001);
+// gui.add(material, "displacementScale").min(0).max(1).step(0.0001);
+
+const matcapsTexture = textureLoader.load("/textures/matcaps/8.png");
+
+const material = new THREE.MeshMatcapMaterial();
+//material.matcap = matcapsTexture;
+
+material.wireframe = false;
+gui.add(material, "wireframe");
 
 /**
- * Base
+ * Fonts
  */
-// Canvas
-const canvas = document.querySelector("canvas.webgl");
 
-// Scene
-const scene = new THREE.Scene();
+const fontLoader = new FontLoader();
+
+// bevel 斜角
+fontLoader.load("/fonts/PuHuiTi_Regular.json", (font) => {
+  const textGeometry = new TextGeometry("鳄梨港", {
+    font: font,
+    size: 0.5,
+    height: 0.2,
+    curveSegments: 12,
+    bevelEnabled: true,
+    bevelThickness: 0.03,
+    bevelSize: 0.02,
+    bevelOffset: 0,
+    bevelSegments: 5,
+  });
+  textGeometry.computeBoundingBox();
+  console.log(textGeometry.boundingBox);
+  // Move every vertices
+  textGeometry.translate(
+    -textGeometry.boundingBox.max.x * 0.5,
+    -textGeometry.boundingBox.max.y * 0.5,
+    -textGeometry.boundingBox.max.z * 0.5
+  );
+
+  const text = new THREE.Mesh(textGeometry, material);
+
+  scene.add(text);
+});
 
 /**
  * Objects
  */
-//const material = new THREE.MeshBasicMaterial();
-//material.map = doorColorTexture;
+const donutGeometry = new THREE.TorusGeometry(0.2, 0.1, 18, 45);
 
-//不能直接使用material.color = xxx, 这种方式只能在初始化↑ 【例，({color: "red"})】时使用
-//material.color = "yellow" // ×
-//material.color = new THREE.Color("yellow"); // √
-//material.color.set("#ff00ff"); // √
+for (let i = 0; i < 200; i++) {
+  const donut = new THREE.Mesh(donutGeometry, material);
 
-//material.wireframe = true;
+  donut.position.x = (Math.random() - 0.5) * 10;
+  donut.position.y = (Math.random() - 0.5) * 10;
+  donut.position.z = (Math.random() - 0.5) * 10;
 
-//material.opacity = 0.5;
-//material.transparent = true;
-//material.alphaMap = alphaTexture;
-//material.side = THREE.DoubleSide;
+  donut.rotation.x = Math.random() * Math.PI;
+  donut.rotation.y = Math.random() * Math.PI;
 
-// Normals can be use for lighting, reflection, refraction, etc.
-//const material = new THREE.MeshNormalMaterial();
-//material.flatShading = true
+  const scale = Math.random();
+  donut.scale.x = scale;
+  donut.scale.y = scale;
+  donut.scale.z = scale;
 
-// 转动视角，光影不变 aka 模拟光影
-//const material = new THREE.MeshMatcapMaterial();
-//material.matcap = matcapsTexture;
-
-// white if it's close to the camera, black if it's far to the camera
-//const material = new THREE.MeshDepthMaterial();
-
-//const material = new THREE.MeshLambertMaterial();
-
-// const material = new THREE.MeshPhongMaterial();
-// material.shiness = 100;
-// material.specular = new THREE.Color(0x1188ff); //change color
-
-//卡通风
-//const material = new THREE.MeshToonMaterial();
-//material.gradientMap = gradientTexture;
-
-// const material = new THREE.MeshStandardMaterial();
-// //material.metalness = 0.45;
-// //material.roughness = 0.65;
-// // UV coordinates: how textures can be applied to geometries
-// material.map = doorColorTexture;
-// //ambient light: 环境光
-// material.aoMap = ambientOcclusionTexture;
-// material.aoMapIntensity = 1;
-// //变得立体
-// material.displacementMap = heightTexture;
-// material.displacementScale = 0.05;
-// //金属感等 注：不与material.metalness同用
-// material.metalnessMap = metalnessTexture;
-// material.roughnessMap = roughnessTexture;
-// //Add more details
-// material.normalMap = normalTexture;
-// material.normalScale.set(0.5, 0.5);
-// // if want to play with opacity、alpha, do not forget material.transparent
-// material.alphaMap = alphaTexture;
-// material.transparent = true;
-
-const material = new THREE.MeshStandardMaterial();
-material.metalness = 0.7;
-material.roughness = 0.2;
-material.envMap = environmentMapTexture;
-
-gui.add(material, "metalness").min(0).max(1).step(0.0001);
-gui.add(material, "roughness").min(0).max(1).step(0.0001);
-gui.add(material, "aoMapIntensity").min(0).max(10).step(0.0001);
-gui.add(material, "displacementScale").min(0).max(1).step(0.0001);
-
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 64, 64), material);
-//sphere.position.x = -1.5;
-
-sphere.geometry.setAttribute(
-  "uv2",
-  new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2)
-);
-
-scene.add(sphere);
+  scene.add(donut);
+}
 
 /**
  * Lights
  */
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
+//gui.add(ambientLight, "color");
 
 const pointLight = new THREE.PointLight(0xffffff, 0.5);
 pointLight.position.x = 2;
@@ -204,9 +200,8 @@ const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
   //Update objects
-  sphere.rotation.y = 0.1 * elapsedTime;
-
-  sphere.rotation.x = 0.15 * elapsedTime;
+  //donut.rotation.x = 0.15 * elapsedTime;
+  //donut.rotation.y = 0.1 * elapsedTime;
 
   // Update controls
   controls.update();
