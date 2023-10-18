@@ -9,6 +9,13 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
  */
 const gui = new GUI();
 
+const colorFormats = {
+  color: "#ffffff",
+  int: 0xffffff,
+  object: { r: 1, g: 1, b: 1 },
+  array: [1, 1, 1],
+};
+
 /**
  * Base
  */
@@ -67,10 +74,13 @@ const textureLoader = new THREE.TextureLoader(loadingManager);
 const matcapsTexture = textureLoader.load("/textures/matcaps/8.png");
 
 const material = new THREE.MeshMatcapMaterial();
-//material.matcap = matcapsTexture;
+material.matcap = matcapsTexture;
 
 material.wireframe = false;
 gui.add(material, "wireframe");
+gui.addColor(colorFormats, "color").onChange(() => {
+  material.color.set(colorFormats.color);
+});
 
 /**
  * Fonts
@@ -133,13 +143,17 @@ for (let i = 0; i < 200; i++) {
  */
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
-//gui.add(ambientLight, "color");
+gui.add(ambientLight, "intensity").min(0).max(1).step(0.001);
 
 const pointLight = new THREE.PointLight(0xffffff, 0.5);
 pointLight.position.x = 2;
 pointLight.position.y = 3;
 pointLight.position.z = 4;
 scene.add(pointLight);
+
+gui.addColor(colorFormats, "color").onChange(() => {
+  pointLight.color.set(colorFormats.color);
+});
 
 /**
  * Sizes
