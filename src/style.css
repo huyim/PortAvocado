@@ -35,3 +35,19 @@ html {
 section:nth-child(odd) {
   justify-content: flex-end;
 }
+
+@font-face {
+  font-family: longCang;
+  src: url(./../static/fonts/LongCang-Regular.ttf);
+}
+
+h2 {
+  font-family: longCang;
+  color: #e0f0e9;
+}
+
+p {
+  font-family: longCang;
+  color: #e0f0e9;
+  font-size: 2vmin;
+}

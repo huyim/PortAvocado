@@ -3,7 +3,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import { RectAreaLightHelper } from "three/examples/jsm/helpers/RectAreaLightHelper.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import gsap from "gsap";
 
@@ -11,6 +10,13 @@ import gsap from "gsap";
  * Debug
  */
 const gui = new GUI();
+gui.title("控制器");
+const lightControl = gui.addFolder("光源控制 Lights");
+const galaxyController = gui.addFolder("星系编辑器 Galaxy");
+
+const parametersColor = {
+  materialColor: "#ffeded",
+};
 
 const colorFormats = {
   color: "#ffffff",
@@ -30,29 +36,12 @@ const scene = new THREE.Scene();
 
 // Fog
 // #262837
-//const fog = new THREE.Fog("#87CEEB", 1, 30); //(color, fog start, how far can see unclearly)
-//scene.fog = fog;
+// const fog = new THREE.Fog("#87CEEB", 1, 30); //(color, fog start, how far can see unclearly)
+// scene.fog = fog;
 
 /**
  * Textures
  */
-// const loadingManager = new THREE.LoadingManager();
-
-// loadingManager.onStart = () => {
-//   console.log("onStart");
-// };
-
-// loadingManager.onProgress = () => {
-//   console.log("onProgress");
-// };
-
-// loadingManager.onLoad = () => {
-//   console.log("onLoaded");
-// };
-
-// loadingManager.onError = () => {
-//   console.log("onError");
-// };
 
 const textureLoader = new THREE.TextureLoader();
 const matcapsTexture = textureLoader.load("/textures/matcaps/8.png");
@@ -60,26 +49,114 @@ const matcapsTexture = textureLoader.load("/textures/matcaps/8.png");
 const textMaterial = new THREE.MeshMatcapMaterial();
 textMaterial.matcap = matcapsTexture;
 
-gui.addColor(colorFormats, "color").onChange(() => {
-  textMaterial.color.set(colorFormats.color);
-});
+/**
+ *  Fonts
+ */
+const fontLoader = new FontLoader();
 
-// Texture to pavilion
+/**
+ * 鳄梨港
+ */
+// Group
+const port = new THREE.Group();
+scene.add(port);
 
-const cementColorTexture = textureLoader.load(
-  "/textures/cement/ConcretePrecastPlates004_COL_2K_METALNESS.png"
+// 吊机
+const baseTower = new THREE.Mesh(
+  new RoundedBoxGeometry(2, 0.25, 2, 4),
+  new THREE.MeshStandardMaterial({ color: "#FA8C35" })
 );
-const cementHeightTexture = textureLoader.load(
-  "/textures/cement/ConcretePrecastPlates004_DISP16_2K_METALNESS.png"
-);
+baseTower.position.z = 1.5;
+port.add(baseTower);
 
-const cementNormalTexture = textureLoader.load(
-  "/textures/cement/ConcretePrecastPlates004_NRM_2K_METALNESS.png"
+const mainTower1 = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.5, 0.5, 2),
+  new THREE.MeshStandardMaterial({ color: "#FA8C35" })
 );
+mainTower1.position.y = 1;
+mainTower1.position.z = 1.5;
+port.add(mainTower1);
 
-const cementRoughnessTexture = textureLoader.load(
-  "/textures/cement/ConcretePrecastPlates004_ROUGHNESS_2K_METALNESS.png"
+const mainTower2 = new THREE.Mesh(
+  new RoundedBoxGeometry(1.25, 0.75, 1.5, 4),
+  new THREE.MeshStandardMaterial({ color: "#FA8C35" })
 );
+mainTower2.position.y = 2.25;
+mainTower2.position.z = 1.5;
+port.add(mainTower2);
+
+const mainTower3 = new THREE.Mesh(
+  new RoundedBoxGeometry(0.35, 0.35, 2.75, 4),
+  new THREE.MeshStandardMaterial({ color: "#FA8C35" })
+);
+mainTower3.position.y = 3;
+mainTower3.position.z = 0.5;
+mainTower3.rotation.x = Math.PI / 4;
+port.add(mainTower3);
+
+const mainTower4 = new THREE.Mesh(
+  new RoundedBoxGeometry(0.75, 1, 0.75, 4),
+  new THREE.MeshStandardMaterial({ color: "#FA8C35" })
+);
+mainTower4.position.y = 2.75;
+mainTower4.position.z = 1.5;
+port.add(mainTower4);
+
+const mainTower5 = new THREE.Mesh(
+  new RoundedBoxGeometry(0.1, 0.1, 2.5, 4),
+  new THREE.MeshStandardMaterial({ color: "#FA8C35" })
+);
+mainTower5.position.y = 2.5;
+mainTower5.position.z = -0.25;
+mainTower5.rotation.x = Math.PI / 2;
+port.add(mainTower5);
+
+// 船
+const ship = new THREE.Mesh(
+  new THREE.CapsuleGeometry(1, 2.5, 1, 3),
+  new THREE.MeshStandardMaterial({ color: "#C83C23" })
+);
+ship.position.y = 0.5;
+ship.position.z = -0.5;
+ship.rotation.x = -Math.PI / 6;
+ship.rotation.z = Math.PI * (1 / 2);
+
+port.add(ship);
+
+const shipCabin = new THREE.Mesh(
+  new RoundedBoxGeometry(0.75, 1, 0.75, 4),
+  new THREE.MeshStandardMaterial({ color: "#FFFFFF" })
+);
+shipCabin.position.x = 0.75;
+shipCabin.position.y = 1.25;
+shipCabin.position.z = -0.5;
+shipCabin.rotation.x = Math.PI / 2;
+port.add(shipCabin);
+
+// 陆地与海
+
+const portBase = new THREE.Group();
+port.add(portBase);
+
+const portOcean = new THREE.Mesh(
+  new RoundedBoxGeometry(8, 0.4, 4, 4),
+  new THREE.MeshStandardMaterial({
+    color: "#1685A9",
+  })
+);
+portOcean.position.z = -2;
+portOcean.position.y = -0.2;
+portBase.add(portOcean);
+
+const portLand = new THREE.Mesh(
+  new RoundedBoxGeometry(8, 0.4, 4, 4),
+  new THREE.MeshStandardMaterial({
+    color: "#96CE54",
+  })
+);
+portLand.position.z = 2;
+portLand.position.y = -0.2;
+portBase.add(portLand);
 
 /**
  *  白水城
@@ -88,9 +165,6 @@ const cementRoughnessTexture = textureLoader.load(
 // Group
 const pavilion = new THREE.Group();
 scene.add(pavilion);
-
-// Fonts
-const fontLoader = new FontLoader();
 
 // bevel 斜角
 fontLoader.load("/fonts/PuHuiTi_Regular.json", (font) => {
@@ -211,37 +285,191 @@ floor.position.y = -0.2;
 pavilion.add(floor);
 
 /**
+ * 银河
+ */
+// Group
+const galaxy = new THREE.Group();
+scene.add(galaxy);
+
+const parameters = {};
+parameters.count = 100000;
+parameters.size = 0.02;
+parameters.radius = 10;
+parameters.branches = 3;
+parameters.spin = 1;
+parameters.randomness = 0.2;
+parameters.randomnessPower = 3;
+parameters.insideColor = "#ff6030";
+parameters.outsideColor = "#1b3984";
+
+// Let: varaible will change Const: varaible will not change
+let geometry = null;
+let material = null;
+let points = null;
+
+const generateGalaxy = () => {
+  // Destroy old galaxy
+  if (points !== null) {
+    geometry.dispose();
+    material.dispose();
+    galaxy.remove(points);
+  }
+
+  // Geometry
+  geometry = new THREE.BufferGeometry();
+
+  const positions = new Float32Array(parameters.count * 3);
+  const colors = new Float32Array(parameters.count * 3);
+
+  const colorInside = new THREE.Color(parameters.insideColor);
+  const colorOutside = new THREE.Color(parameters.outsideColor);
+  // lerp color to coverage on
+
+  for (let i = 0; i < parameters.count; i++) {
+    const i3 = i * 3;
+
+    // Position
+    const radius = Math.random() * parameters.radius;
+    const spinAngle = radius * parameters.spin;
+    const branchAngle =
+      ((i % parameters.branches) / parameters.branches) * Math.PI * 2; //调整角度
+
+    const randomX =
+      Math.pow(Math.random(), parameters.randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1);
+    const randomY =
+      Math.pow(Math.random(), parameters.randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1);
+    const randomZ =
+      Math.pow(Math.random(), parameters.randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1);
+
+    positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX; //x
+    positions[i3 + 1] = randomY; //y
+    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ; //z
+
+    // Color
+    const mixedColor = colorInside.clone();
+    mixedColor.lerp(colorOutside, radius / parameters.radius);
+    colors[i3] = mixedColor.r;
+    colors[i3 + 1] = mixedColor.g;
+    colors[i3 + 2] = mixedColor.b;
+  }
+
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+  // Material
+  material = new THREE.PointsMaterial({
+    size: parameters.size,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true,
+  });
+
+  // Points
+  points = new THREE.Points(geometry, material);
+  galaxy.add(points);
+};
+generateGalaxy();
+
+// Control Panel
+
+galaxyController
+  .add(parameters, "count")
+  .min(100)
+  .max(200000)
+  .step(100)
+  .onFinishChange(generateGalaxy)
+  .name("粒子数量");
+galaxyController
+  .add(parameters, "size")
+  .min(0.001)
+  .max(0.1)
+  .step(0.001)
+  .onFinishChange(generateGalaxy)
+  .name("粒子尺寸");
+galaxyController
+  .add(parameters, "radius")
+  .min(0.01)
+  .max(20)
+  .step(0.01)
+  .onFinishChange(generateGalaxy)
+  .name("半径");
+galaxyController
+  .add(parameters, "branches")
+  .min(2)
+  .max(20)
+  .step(1)
+  .onFinishChange(generateGalaxy)
+  .name("分支");
+galaxyController
+  .add(parameters, "spin")
+  .min(-5)
+  .max(5)
+  .step(0.001)
+  .onFinishChange(generateGalaxy);
+galaxyController
+  .add(parameters, "randomness")
+  .min(0)
+  .max(2)
+  .step(0.001)
+  .onFinishChange(generateGalaxy);
+galaxyController
+  .add(parameters, "randomnessPower")
+  .min(1)
+  .max(10)
+  .step(0.001)
+  .onFinishChange(generateGalaxy);
+galaxyController
+  .addColor(parameters, "insideColor")
+  .onFinishChange(generateGalaxy)
+  .name("内核颜色");
+galaxyController
+  .addColor(parameters, "outsideColor")
+  .onFinishChange(generateGalaxy)
+  .name("外圈颜色");
+
+/**
  * 摆放位置与相对关系
  */
 const objectDistance = 10;
-const mesh1 = new THREE.Mesh(
-  new THREE.TorusGeometry(1, 0.4, 16, 60),
-  new THREE.MeshToonMaterial()
-);
 
-const mesh2 = new THREE.Mesh(
-  new THREE.ConeGeometry(1, 2, 32),
-  new THREE.MeshToonMaterial()
-);
+port.scale.set(0.8, 0.8, 0.8);
+port.rotation.x = Math.PI / 8;
+pavilion.scale.set(0.8, 0.8, 0.8);
+pavilion.rotation.x = Math.PI / 8;
+galaxy.scale.set(0.8, 0.8, 0.8);
+galaxy.rotation.x = Math.PI / 8;
 
-pavilion.position.y = -2;
-pavilion.position.x = 2.5;
-mesh1.position.y = -objectDistance * 1.4;
-mesh1.position.x = -2.5;
-mesh2.position.y = -objectDistance * 2.3;
-mesh2.position.x = 2.5;
+//port.position.y = -objectDistance + 7;
+port.position.x = 2;
+pavilion.position.y = -objectDistance * 1;
+pavilion.position.x = -2;
+galaxy.position.y = -objectDistance * 2;
+galaxy.position.x = 2;
 
-scene.add(mesh1, mesh2);
-
-const sectionMeshes = [pavilion, mesh1, mesh2];
+const sectionMeshes = [port, pavilion, galaxy];
 
 /**
  * 光源
  */
 // Ambient light
 const ambientLight = new THREE.AmbientLight("#b9d5ff", 0.6);
-gui.add(ambientLight, "intensity").min(0).max(1).step(0.001);
+lightControl
+  .add(ambientLight, "intensity")
+  .min(0)
+  .max(1)
+  .step(0.001)
+  .name("环境光强度");
 scene.add(ambientLight);
+lightControl
+  .addColor(colorFormats, "color")
+  .onChange(() => {
+    ambientLight.color.set(colorFormats.color);
+  })
+  .name("环境光颜色");
 
 // 文字补充光源
 const rectAreaLight = new THREE.RectAreaLight(0xd1ba29, 2, 2, 1);
@@ -253,7 +481,20 @@ pavilion.add(rectAreaLight);
 // 模拟太阳光
 const moonLight = new THREE.DirectionalLight("#dbc869", 1);
 moonLight.position.set(1, 1, 0);
+lightControl
+  .add(moonLight, "intensity")
+  .min(0)
+  .max(1)
+  .step(0.001)
+  .name("平行光强度");
 scene.add(moonLight);
+
+lightControl
+  .addColor(colorFormats, "color")
+  .onChange(() => {
+    moonLight.color.set(colorFormats.color);
+  })
+  .name("平行光颜色");
 
 // Door Light
 const doorLight = new THREE.PointLight("#ff7d46", 1, 7);
@@ -262,7 +503,39 @@ pavilion.add(doorLight);
 
 // Ghosts light
 const ghost1 = new THREE.PointLight("#00a3f5", 2, 3);
-scene.add(ghost1);
+pavilion.add(ghost1);
+
+/**
+ * Particles
+ */
+// Geometry
+const particlesCount = 200;
+const positions = new Float32Array(particlesCount * 3);
+
+for (let i = 0; i < particlesCount; i++) {
+  positions[i * 3 + 0] = (Math.random() - 0.5) * 10;
+  positions[i * 3 + 1] =
+    objectDistance * 0.5 -
+    Math.random() * objectDistance * sectionMeshes.length;
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+}
+
+const particlesGeometry = new THREE.BufferGeometry();
+particlesGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(positions, 3)
+);
+
+// Material
+const particlesMaterial = new THREE.PointsMaterial({
+  color: parametersColor.materialColor,
+  sizeAttenuation: textureLoader,
+  size: 0.03,
+});
+
+// Points
+const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+scene.add(particles);
 
 /**
  * Sizes
@@ -287,7 +560,7 @@ window.addEventListener("resize", () => {
 });
 
 /**
- * Camera
+ * 相机
  */
 //Group
 const cameraGroup = new THREE.Group();
@@ -295,14 +568,14 @@ scene.add(cameraGroup);
 
 // Base camera
 const camera = new THREE.PerspectiveCamera(
-  75,
+  55,
   sizes.width / sizes.height,
   0.1,
   100
 );
-camera.position.x = 7;
-camera.position.y = 2.7;
-camera.position.z = 11;
+//camera.position.x = 7;
+//camera.position.y = 2;
+camera.position.z = 12;
 cameraGroup.add(camera);
 
 // Controls
@@ -317,7 +590,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor("#44cef6");
+renderer.setClearColor("#1e1a20");
 
 /**
  * Scroll
@@ -333,12 +606,10 @@ window.addEventListener("scroll", () => {
   if (newSection != currentSection) {
     currentSection = newSection;
 
-    gsap.to(sectionMeshes(currentSection).rotation, {
+    gsap.to(sectionMeshes[currentSection].rotation, {
       duration: 1.5,
       ease: "power2,inOut",
-      x: "+=6",
       y: "+=3",
-      z: "+=1.5",
     });
   }
 });
@@ -354,6 +625,15 @@ moonLight.castShadow = true;
 //doorLight.castShadow = true;
 ghost1.castShadow = true;
 
+mainTower1.castShadow = true;
+mainTower2.castShadow = true;
+mainTower3.castShadow = true;
+mainTower4.castShadow = true;
+mainTower5.castShadow = true;
+
+baseTower.receiveShadow = true;
+portLand.receiveShadow = true;
+
 level1.castShadow = true;
 level2.castShadow = true;
 level3.castShadow = true;
@@ -363,11 +643,8 @@ spring1.castShadow = true;
 spring2.castShadow = true;
 spring3.castShadow = true;
 
+baseStone.receiveShadow = true;
 floor.receiveShadow = true;
-
-// doorLight.shadow.mapSize.width = 256;
-// doorLight.shadow.mapSize.height = 256;
-// doorLight.shadow.camera.far = 7;
 
 ghost1.shadow.mapSize.width = 256;
 ghost1.shadow.mapSize.height = 256;
@@ -420,7 +697,7 @@ const tick = () => {
   ghost1.position.y = Math.sin(elapsedTime * 3);
 
   // Update controls
-  //controls.update();
+  // controls.update();
 
   // Render
   renderer.render(scene, camera);
